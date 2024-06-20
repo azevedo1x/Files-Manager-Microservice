@@ -10,21 +10,16 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/dns")
 public class DNSController {
-    private WebClient webClient = null;
 
-    public DNSController(WebClient.Builder webClientBuilder) {
-        this.webClient = webClientBuilder.baseUrl("http://localhost:8761").build();
-    }
+    @Autowired
+    private DiscoveryClient discoveryClient;
 
-    @GetMapping("/applications")
-    public Mono<List<String>> getApplications() {
-        return webClient.get()
-                .uri("/eureka/apps")
-                .retrieve()
-                .bodyToMono(String.class)
-                .map(response -> {
-                    return List.of(response.split("\n"));
-                });
-    }
+    @GetMapping("/resolve")
+    public String resolve(@RequestParam String appName) {
 
+        return discoveryClient.getInstances(appName).stream()
+                .findFirst()
+                .map(serviceInstance -> serviceInstance.getUri().toString())
+                .orElseThrow(() -> new RuntimeException("Application not found: " + appName));
+            }
 }

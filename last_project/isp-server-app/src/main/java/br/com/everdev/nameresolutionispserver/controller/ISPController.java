@@ -8,24 +8,42 @@ import reactor.core.publisher.Mono;
 import java.util.Map;
 
 @RestController
+@RequestMapping("/perfil")
 public class ISPController {
-
-    @Autowired
-    private DiscoveryClient discoveryClient;
 
     @Autowired
     private WebClient.Builder webClientBuilder;
 
-    @PostMapping("/validacao")
-    public Mono<String> validarEmail(@RequestBody Map<String, String> payload) {
-        String validacaoAppUrl = discoveryClient.getInstances("validacao-app").stream()
-                .findFirst()
-                .map(instance -> instance.getUri().toString())
-                .orElseThrow(() -> new RuntimeException("App nao encontrado."));
+    private String getProfileAppUrl() {
 
+        String dnsServerUrl = "http://localhost:8761";
+        String profileAppUrl = webClientBuilder.build()
+                .get()
+                .uri(dnsServerUrl + "/dns/resolve?appName=profile-app")
+                .retrieve()
+                .bodyToMono(String.class)
+                .block();
+        return profileAppUrl;
+    }
+
+    @GetMapping("/obterArquivo/{filename}")
+    public Mono<String> obterArquivo(@PathVariable String filename) {
+
+        String profileAppUrl = getProfileAppUrl();
+        return webClientBuilder.build()
+                .get()
+                .uri(profileAppUrl + "/profile-app/obterArquivo/" + filename)
+                .retrieve()
+                .bodyToMono(String.class);
+    }
+
+    @PostMapping("/salvarArquivo/{filename}")
+    public Mono<String> salvarArquivo(@PathVariable String filename, @RequestBody Map<String, String> payload) {
+
+        String profileAppUrl = getProfileAppUrl();
         return webClientBuilder.build()
                 .post()
-                .uri(validacaoAppUrl + "/validar-email")
+                .uri(profileAppUrl + "/profile-app/salvarArquivo/" + filename)
                 .bodyValue(payload)
                 .retrieve()
                 .bodyToMono(String.class);
