@@ -111,9 +111,6 @@ curl -X POST -H "Content-Type: application/json" -d '{"content": "New content"}'
 - **Method:** POST
 - **Request Body:** `{ "content": "New content" }`
 
-### **Automated Tests**
-Implement unit and integration tests using frameworks such as JUnit and Mockito to ensure that services are working as expected.
-
 ## **Contributions**
 
 ### **How ​​to Contribute**
